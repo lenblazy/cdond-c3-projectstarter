@@ -45,6 +45,7 @@ jobs:
       - run:
           name: Front-end Unit Tests
           command: |
+            cd frontend
             npm install
             npm run test
 
@@ -58,6 +59,7 @@ jobs:
       - run:
           name: Back-end Unit Tests
           command: |
+            cd frontend
             npm install
             npm run test
 
