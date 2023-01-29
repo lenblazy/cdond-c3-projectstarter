@@ -4,16 +4,6 @@ orbs:
   slack: circleci/slack@4.2.0
 
 commands:
-  install_awscli:
-    description: Install AWS CLI
-    steps:
-      - run:
-          name: Install AWS CLI
-          command: |
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -137,10 +127,13 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: cimg/base:stable
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - install_awscli
+      - run:
+          name: Install Tar  
+          command: |
+            yum -y install tar gzip jq git
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -174,7 +167,6 @@ jobs:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
-      - install_awscli
       - add_ssh_keys:
           fingerprints: ["80:36:d9:d0:0a:39:89:aa:ee:92:11:cf:3d:6c:f4:14"]
       - attach_workspace:
@@ -182,10 +174,26 @@ jobs:
       - run:
           name: Install dependencies 
           command: |
-            apk add --update ansible 
+            apk add --update ansible openssh-client tar gzip curl nodejs npm
+            pip install awscli
+            cat .circleci/ansible/inventory.txt
       - run:
           name: Configure server
           command: |
+            cd backend
+            echo ENVIRONMENT=production > ".env"
+            echo TYPEORM_CONNECTION=postgres >> ".env"
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> ".env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> ".env"
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> ".env"
+            echo NODE_ENV=production >> ".env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+            cd ..
+            export ANSIBLE_HOST_KEY_CHECKING=False
             cd .circleci/ansible
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
