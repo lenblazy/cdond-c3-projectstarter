@@ -15,7 +15,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.id >> \
+            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.id >> 
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.id >>
 
   revert-migrations:
@@ -38,6 +38,19 @@ commands:
             npm install
             npm run migration:revert
           fi
+
+  aws_cli_install:
+    description: This command installs AWSCLI
+    steps:
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            sudo apt-get install unzip -y
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install  
+
 
 jobs:
   build-frontend:
@@ -225,6 +238,7 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
+      - aws_cli_install
       - run:
           name: Run migrations
           command: |
@@ -234,11 +248,46 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            curl https://kvdb.io/${KVDB_BUCKET}/migration${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+            curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
       - destroy-environment
       - revert-migrations
          
-          
+  deploy-frontend:
+    docker:
+      - image: cimg/node: 13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - attach_workspace:
+          at: ~/
+      - aws_cli_install
+      - run:
+          name: Install dependencies
+          command: |
+            cd frontend
+            npm i
+      - run:
+          name: Get backend url
+          command: |
+            touch ".env"
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1  \
+                --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query "Reservations[].Instances[*].PublicIpAddress" \
+                --output text)    
+            echo "API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+      - revert-migrations
+
 
 workflows:
   default:
