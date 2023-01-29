@@ -158,7 +158,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment:
-          id: 123456
+          id: '123456'
           
 
 workflows:
