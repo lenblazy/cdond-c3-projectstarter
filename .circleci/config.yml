@@ -253,8 +253,8 @@ jobs:
           name: Send migration results to memstash
           command: |
             curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
          
   deploy-frontend:
     docker:
