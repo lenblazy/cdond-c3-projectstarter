@@ -3,6 +3,17 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.2.0
 
+executors:
+  node:
+    docker:
+      - image: circleci/node:13.8.0
+  python:
+    docker:
+      - image: python:3.9.0-alpine
+  aws:
+    docker:
+      - image: amazon/aws-cli
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -12,7 +23,7 @@ commands:
         default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
-          name: Destroy environments
+          name: Destroy backend stack
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.id >> 
@@ -54,8 +65,7 @@ commands:
 
 jobs:
   build-frontend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -74,8 +84,7 @@ jobs:
           template: basic_fail_1
 
   build-backend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -94,8 +103,7 @@ jobs:
           template: basic_fail_1
 
   test-frontend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -111,8 +119,7 @@ jobs:
           template: basic_fail_1
 
   test-backend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -128,8 +135,7 @@ jobs:
           template: basic_fail_1
 
   scan-frontend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -144,8 +150,7 @@ jobs:
           template: basic_fail_1
 
   scan-backend:
-    docker:
-      - image: circleci/node:13.8.0
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -160,8 +165,7 @@ jobs:
           template: basic_fail_1
 
   deploy-infrastructure:
-    docker:
-      - image: amazon/aws-cli
+    executor: aws
     steps:
       - checkout
       - run:
@@ -197,8 +201,7 @@ jobs:
       - destroy-environment
 
   configure-infrastructure:
-    docker:
-      - image: python:3.7-alpine3.11
+    executor: python
     steps:
       - checkout
       - add_ssh_keys:
@@ -234,8 +237,7 @@ jobs:
       - destroy-environment
 
   run-migrations:
-    docker:
-      - image: cimg/node:13.8.0
+    executor: node
     steps:
       - checkout
       - aws_cli_install
