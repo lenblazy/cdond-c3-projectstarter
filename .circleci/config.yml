@@ -11,7 +11,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name udapeople-backend-${\<< parameters.id \>>}
+            aws cloudformation delete-stack --stack-name udapeople-backend-${parameters.id}
 
 jobs:
   build-frontend:
@@ -126,14 +126,17 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddess' \
-            --output text >> project/.circleci/ansible/inventory.txt
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:project,Values=udapeople" \
+              --output text >> .circleci/ansible/inventory.txt
+              cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment:
-          id: \<< ${CIRCLE_WORKFLOW_ID:0:7} >>
+          id: ${CIRCLE_WORKFLOW_ID:0:7}
           
 
 workflows:
