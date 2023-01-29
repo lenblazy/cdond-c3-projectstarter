@@ -238,74 +238,59 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
-      - restore_cache:
-          key: backend-build
       - aws_cli_install
       - run:
           name: Run migrations
-          working_directory: ./backend
           command: |
+            cd backend
+            npm cache clean 
             npm install
-            sudo npm install pm2 -g
-            echo ENVIRONMENT=production > ".env"
-            echo TYPEORM_CONNECTION=postgres >> ".env"
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> ".env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> ".env"
-            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> ".env"
-            echo NODE_ENV=production >> ".env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> ".env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             npm run migrations > migrations_dump.txt 
             cat migrations_dump.txt 
             migration_succesful=$(cat migrations_dump.txt  | grep -c "has been executed successfully")
             if [ $migration_succesful > 0 ]; then exit 0; else exit 1; fi;  
       - run:
-          name: Send migration results to KVDBIO
+          name: Send migration results to memstash
           command: |
             curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
       - destroy-environment
       - revert-migrations
          
-  # deploy-frontend:
-  #   docker:
-  #     - image: cimg/node: 13.8.0
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys: [frontend-build]
-  #     - attach_workspace:
-  #         at: ~/
-  #     - aws_cli_install
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           cd frontend
-  #           npm i
-  #     - run:
-  #         name: Get backend url
-  #         command: |
-  #           touch ".env"
-  #           export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1  \
-  #               --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-  #               --query "Reservations[].Instances[*].PublicIpAddress" \
-  #               --output text)    
-  #           echo "API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
-  #           cat frontend/.env
-  #     - run:
-      #     name: Deploy frontend objects
-      #     command: |
-      #       cd frontend
-      #       npm install
-      #       npm run build
-      #       tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-      #       aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      # - destroy-environment
-      # - revert-migrations
+  deploy-frontend:
+    docker:
+      - image: cimg/node: 13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - attach_workspace:
+          at: ~/
+      - aws_cli_install
+      - run:
+          name: Install dependencies
+          command: |
+            cd frontend
+            npm i
+      - run:
+          name: Get backend url
+          command: |
+            touch ".env"
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1  \
+                --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query "Reservations[].Instances[*].PublicIpAddress" \
+                --output text)    
+            echo "API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+      - revert-migrations
 
 
 workflows:
