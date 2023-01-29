@@ -28,16 +28,16 @@ commands:
       - restore_cache:
           key: backend-build
       - run:
-        name: Revert Migration
-        when: on_fail
-        command: |
-          SUCCESS=$(curl --insecure https://kvdb.io/${KVDB_BUCKET_ID}/migration_<< parameters.id >>)
-          if [[ $SUCCESS == 1 ]];
-          then
-            cd ~/project/backend
-            npm install
-            npm run migration:revert
-          fi
+          name: Revert Migration
+          when: on_fail
+          command: |
+            SUCCESS=$(curl --insecure https://kvdb.io/${KVDB_BUCKET_ID}/migration_<< parameters.id >>)
+            if [[ $SUCCESS == 1 ]];
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+            fi
 
   aws_cli_install:
     description: This command installs AWSCLI
