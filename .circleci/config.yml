@@ -255,6 +255,7 @@ jobs:
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+            npm run migration > migrations_dump.txt 
             cat migrations_dump.txt 
             migration_succesful=$(cat migrations_dump.txt  | grep -c "has been executed successfully")
             if [ $migration_succesful > 0 ]; then exit 0; else exit 1; fi;  
@@ -264,6 +265,9 @@ jobs:
             curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
       - destroy-environment
       - revert-migrations
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
          
   # deploy-frontend:
   #   docker:
