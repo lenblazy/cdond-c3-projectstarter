@@ -23,9 +23,9 @@
   become: yes
   apt:
     name: pm2
-    global: yes
+    # global: yes
     state: latest
-    production: yes
+    # production: yes
 
 
 
