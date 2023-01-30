@@ -19,12 +19,12 @@
     state: latest
     update_cache: yes
 
-- name: 'install pm2.'
-  become: yes
-  apt:
-    name: pm2
-    # global: yes
-    state: latest
+# - name: 'install pm2.'
+#   become: yes
+#   apt:
+#     name: 'pm2'
+#     # global: yes
+#     state: latest
     # production: yes
 
 

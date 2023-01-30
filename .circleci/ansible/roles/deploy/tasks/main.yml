@@ -19,13 +19,13 @@
     state: latest
     update_cache: yes
 
-- name: 'install pm2.'
-  become: yes
-  apt:
-    name: pm2
-    # global: yes
-    state: latest
-    # production: yes
+# - name: 'install pm2.'
+#   become: yes
+#   apt:
+#     name: pm2
+#     # global: yes
+#     state: latest
+#     # production: yes
 
 - name: 'extract artifact'
   become: yes
@@ -33,11 +33,11 @@
     src: files/artifact.tar.gz
     dest: .
 
-- name: start app
-  become: yes
-  shell: |
-    pm2 delete all
-    pm2 start npm --start
+# - name: start app
+#   become: yes
+#   shell: |
+#     pm2 delete all
+#     pm2 start npm --start
 
 
 
