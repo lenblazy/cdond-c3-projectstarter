@@ -14,12 +14,10 @@
 
   pre_tasks:
     - name: "wait 600 seconds for target connection to become reachable/usable."
-      # Your code here
       wait_for_connection:
         timeout: 600
 
     - name: "install python for Ansible."
-      # Your code here
       become: true
       apt:
         name: "python3-pip"
@@ -39,6 +37,4 @@
     - TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
 
   roles:
-    # Your code here
     - configure-server
-    - configure-prometheus-node-exporter
