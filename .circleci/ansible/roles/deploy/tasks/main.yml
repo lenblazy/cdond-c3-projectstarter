@@ -7,10 +7,10 @@
     update_cache: yes
     cache_valid_time: 86400
 
-- name: 'remove unwanted dependencies.'
-  become: yes
-  apt:
-    auto_remove: yes
+# - name: 'remove unwanted dependencies.'
+#   become: yes
+#   apt:
+#     auto_remove: yes
 
 - name: 'install dependencies.'
   become: yes
