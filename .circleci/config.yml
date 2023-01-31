@@ -363,6 +363,7 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             export API_URL_ENDPOINT="${API_URL}/api/status"
             echo "${API_URL_ENDPOINT}"
+            curl "${API_URL_ENDPOINT}"
             if curl -s "${API_URL_ENDPOINT}" | grep "ok"
             then
               return 0
