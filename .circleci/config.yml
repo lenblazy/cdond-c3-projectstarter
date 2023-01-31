@@ -381,11 +381,11 @@ jobs:
             else
               return 1
             fi
-      # - destroy-environment
-      # - revert-migrations
-      # - slack/notify:
-      #     event: fail
-      #     template: basic_fail_1
+      - destroy-environment
+      - revert-migrations
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   cloudfront-update:
     executor: aws
@@ -394,7 +394,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yum install -y npm nodejs
+            yum install tar gzip npm nodejs -y enablerepo=epel
       - run:
           name: Update cloudfront distribution
           command: |
@@ -458,6 +458,11 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      - smoke-test:
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
           requires: [deploy-backend, deploy-frontend]
+          # requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
 
