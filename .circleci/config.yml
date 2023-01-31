@@ -368,7 +368,6 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             export API_URL_ENDPOINT="${API_URL}/api/status"
             echo "${API_URL_ENDPOINT}"
-            curl "${API_URL_ENDPOINT}"
             if curl --connect-timeout 5 -s "${API_URL_ENDPOINT}" | grep "ok"; then return 0; else return 1; fi
       - run:
           name: Frontend smoke test.
