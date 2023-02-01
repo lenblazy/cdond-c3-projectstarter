@@ -420,11 +420,12 @@ jobs:
             --query "StackSummaries[*].StackName" \
             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
             echo "${OldWorkflowID}"
+            echo "${STACKS[@]}"
       - run:
           name: Remove old stacks and files
           command: |
-            echo ${STACKS[@]}
-            echo ${OldWorkflowID}
+            echo "${STACKS[@]}"
+            echo "${OldWorkflowID}"
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               echo "s3://udapeople-${OldWorkflowID}"
