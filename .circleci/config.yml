@@ -368,7 +368,7 @@ jobs:
       #       export API_URL="http://${BACKEND_IP}:3030"
       #       export API_URL_ENDPOINT="${API_URL}/api/status"
       #       echo "${API_URL_ENDPOINT}"
-      #       if curl --connect-timeout 60 -s "${API_URL_ENDPOINT}" | grep "ok"; then exit 0; else exit 1; fi
+      #       if curl --connect-timeout 60 "${API_URL_ENDPOINT}" | grep "ok"; then exit 0; else exit 1; fi
       - run:
           name: Frontend smoke test.
           command: |
@@ -401,6 +401,7 @@ jobs:
             --stack-name InitialStack \
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
+            echo "${OldWorkflowID}"
       - destroy-environment
       - revert-migrations
       - slack/notify:
@@ -418,9 +419,12 @@ jobs:
             export STACKS=$(aws cloudformation list-stacks \
             --query "StackSummaries[*].StackName" \
             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
+            echo "${OldWorkflowID}"
       - run:
           name: Remove old stacks and files
           command: |
+            echo ${STACKS[@]}
+            echo ${OldWorkflowID}
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               echo "s3://udapeople-${OldWorkflowID}"
