@@ -302,7 +302,7 @@ jobs:
           name: Get backend url
           command: |
             export BACKEND_IP=$(aws --region us-east-1 ec2 describe-instances --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            export API_URL="https://${BACKEND_IP}:3030"
+            export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
@@ -354,13 +354,14 @@ jobs:
           template: basic_fail_1
 
   smoke-test:
-    executor: python
+    executor: node
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache curl aws-cli
+            sudo apt install -y curl
+      - aws_cli_install
       - run:
           name: Backend smoke test.
           command: |
